@@ -9,9 +9,11 @@ import { Spinner } from "@/components/ui/spinner"
 
 interface ResultsDashboardProps {
   result: AnalysisResult
-  rawResult: Record<string, unknown>   // the raw backend response for WhatsApp
+  rawResult: Record<string, unknown>
   onReset: () => void
 }
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export function ResultsDashboard({ result, rawResult, onReset }: ResultsDashboardProps) {
   const [phone, setPhone]         = useState("")
@@ -24,7 +26,7 @@ export function ResultsDashboard({ result, rawResult, onReset }: ResultsDashboar
     setSending(true)
     setWaStatus("idle")
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/send-whatsapp", {
+      const res = await fetch(`${API_URL}/api/send-whatsapp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

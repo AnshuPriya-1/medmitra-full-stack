@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -5,15 +6,14 @@ from app.routes import analyze, health
 from app.routes.multi_prescription import router as multi_router
 
 # ---------------------------------------------------------------------------
-# App instance (CREATE FIRST)
+# App instance
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Medmitra – Prescription Intelligence System",
     description=(
         "FastAPI backend that parses prescriptions and returns structured "
-        "medication data. Currently running in **mock mode** – all endpoints "
-        "return realistic sample data without any OCR processing."
+        "medication data using Gemini Vision + AI analysis."
     ),
     version="1.0.0",
     docs_url="/docs",
@@ -21,29 +21,37 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
-# CORS – allow frontend
+# CORS – allow frontend (local dev + production Vercel URL)
 # ---------------------------------------------------------------------------
+
+# You can add more origins as a comma-separated env var:
+# ALLOWED_ORIGINS=https://medmitra.vercel.app,https://yourcustomdomain.com
+extra_origins = os.getenv("ALLOWED_ORIGINS", "")
+extra_list = [o.strip() for o in extra_origins.split(",") if o.strip()]
+
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    *extra_list,
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ---------------------------------------------------------------------------
-# Routers (ADD AFTER app is created)
+# Routers
 # ---------------------------------------------------------------------------
 
 app.include_router(health.router, prefix="/api")
 app.include_router(analyze.router, prefix="/api")
-app.include_router(multi_router, prefix="/api")   # ✅ YOUR NEW ROUTE
+app.include_router(multi_router, prefix="/api")
 
 # ---------------------------------------------------------------------------
 # Root endpoint
